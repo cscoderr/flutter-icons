@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:io';
 import 'file:///Users/makisu/flutter-icons/test/a.dart';
 //void main() async {

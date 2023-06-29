@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 
@@ -25,18 +24,18 @@ class IconToggle extends StatefulWidget {
   final Color activeColor;
   final Color inactiveColor;
   final bool value;
-  final ValueChanged<bool> onChanged;
+  final ValueChanged<bool>? onChanged;
   final AnimatedSwitcherTransitionBuilder transitionBuilder;
   final Duration duration;
-  final Duration reverseDuration;
+  final Duration? reverseDuration;
   @override
   _IconToggleState createState() => _IconToggleState();
 }
 
 class _IconToggleState extends State<IconToggle>
     with SingleTickerProviderStateMixin {
-  AnimationController _controller;
-  Animation<double> _position;
+  late AnimationController _controller;
+  late Animation<double> _position;
   bool _cancel = false;
 
   @override
@@ -48,17 +47,15 @@ class _IconToggleState extends State<IconToggle>
         reverseDuration: Duration(milliseconds: 50));
     _position = CurvedAnimation(parent: _controller, curve: Curves.linear);
     _position.addStatusListener((status) {
-      if (status == AnimationStatus.dismissed &&
-          widget.onChanged != null &&
-          _cancel == false) {
-        widget.onChanged(!widget.value);
+      if (_cancel == false) {
+        widget.onChanged!(!widget.value);
       }
     });
   }
 
   @override
   void dispose() {
-    _controller?.dispose();
+    _controller.dispose();
     super.dispose();
   }
 
@@ -68,14 +65,14 @@ class _IconToggleState extends State<IconToggle>
       behavior: HitTestBehavior.opaque,
       onTapDown: (event) {
         _cancel = false;
-        _controller?.forward();
+        _controller.forward();
       },
       onTapUp: (event) {
-        _controller?.reverse();
+        _controller.reverse();
       },
       onTapCancel: () {
         _cancel = true;
-        _controller?.reverse();
+        _controller.reverse();
       },
       child: Padding(
         padding: const EdgeInsets.all(10.0),
@@ -88,7 +85,9 @@ class _IconToggleState extends State<IconToggle>
             reverseDuration: widget.reverseDuration,
             transitionBuilder: widget.transitionBuilder,
             child: Icon(
-              widget.value ? widget.selectedIconData : widget.unselectedIconData,
+              widget.value
+                  ? widget.selectedIconData
+                  : widget.unselectedIconData,
               color: widget.value ? widget.activeColor : widget.inactiveColor,
               size: 22,
               key: ValueKey<bool>(widget.value),
@@ -102,11 +101,13 @@ class _IconToggleState extends State<IconToggle>
 
 class _IconToggleable<T> extends AnimatedWidget {
   _IconToggleable({
-    Animation<T> listenable,
-    this.activeColor,
-    this.inactiveColor,
-    this.child,
-  }) : super(listenable: listenable);
+    required Animation<T> listenable,
+    required this.activeColor,
+    required this.inactiveColor,
+    required this.child,
+  })  : _animation = listenable,
+        super(listenable: listenable);
+  final Animation<T> _animation;
   final Color activeColor;
   final Color inactiveColor;
   final Widget child;
@@ -114,7 +115,7 @@ class _IconToggleable<T> extends AnimatedWidget {
   Widget build(BuildContext context) {
     return CustomPaint(
       painter: _IconPainter(
-        position: listenable,
+        position: _animation as Animation<double>,
         activeColor: activeColor,
         inactiveColor: inactiveColor,
       ),
@@ -125,9 +126,9 @@ class _IconToggleable<T> extends AnimatedWidget {
 
 class _IconPainter extends CustomPainter {
   _IconPainter({
-    @required this.position,
-    this.activeColor,
-    this.inactiveColor,
+    required this.position,
+    required this.activeColor,
+    required this.inactiveColor,
   });
   final Animation<double> position;
   final Color activeColor;
@@ -138,7 +139,7 @@ class _IconPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final Paint paint = Paint()
-      ..color = Color.lerp(inactiveColor, activeColor, _value)
+      ..color = Color.lerp(inactiveColor, activeColor, _value)!
           .withOpacity(math.min(_value, 0.15))
       ..style = PaintingStyle.fill
       ..strokeWidth = 2.0;
